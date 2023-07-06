@@ -31,10 +31,17 @@ def parse(url=None):
 
     # find the first <img> that does NOT have a srcset attr
 
+    main_logo_url = f'https://stardewvalleywiki.com/mediawiki/images/6/68/Main_Logo.png'
+
     try:
+        
         embed.thumbnail = 'https://stardewvalleywiki.com' + soup.find_all('img', {'srcset': False})[0]['src']
+        if embed.thumbnail == 'https://stardewvalleywiki.com/mediawiki/resources/assets/licenses/cc-by-nc-sa.png':
+            embed.image = main_logo_url
+            embed.thumbnail = None
+        
     except:
-        embed.thumbnail = f'https://stardewvalleywiki.com/mediawiki/images/6/68/Main_Logo.png'
+        embed.image = main_logo_url
     
     embed.title = soup.find_all('h1', {'id': 'firstHeading'})[0].text + ' - Stardew Valley Wiki'
     embed.url = url
@@ -58,7 +65,10 @@ def parse(url=None):
 
                 if spans := detail.find_all('span', {'class': 'no-wrap'}):
                     detail = spans[0].text
-                
+                elif spans := detail.find_all('span', {'style': 'display: none;'}):
+                    logger.info(f'Found span: {spans}')
+                    detail = detail.text.replace(spans[0].text, '')
+
                 elif spans := detail.find_all('span', {'class': 'nametemplate'}):
                     items = []
                     for span in spans:
