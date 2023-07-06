@@ -4,6 +4,8 @@ from src.embed import EmbedBuiler
 from src.config import (
     BOT_PREFIX
 )
+from src.emotes import getQualityFromPath
+
 
 logger = None
 
@@ -62,6 +64,8 @@ def parse(url=None):
         for tr in trs:
             # logger.info(f'Found tr: {tr}')
             try:
+                if tr.find_all('table', {'style': 'width:101%;'}) or tr.find_all('div', {'class': 'parent'}):
+                    break
                 section = tr.find_all('td', {'id': 'infoboxsection'})[0].text
                 detail = tr.find_all('td', {'id': 'infoboxdetail'})[0]
 
@@ -77,13 +81,65 @@ def parse(url=None):
                         items.append(span.text)
                     detail = ', '.join(items)
                 
-                elif p_tags := detail.find_all('p'):
+                elif p_tags := detail.find_all('p', {
+                    'class': lambda x: x != 'mw-empty-elt'
+                }):
                     items = []
                     for p in p_tags:
                         items.append(p.text)
 
                     detail = ', '.join(items)
-                
+                elif imgs := [
+                    x for x in detail.find_all('img')
+                    if x['alt'].endswith(' Quality.png')
+                ]:
+                    # getinnerhtml of the detail
+
+                    # replace all LOOSE TEXT in the detail with a <loose> tag
+                    for child in detail.children:
+                        if isinstance(child, bs4.element.NavigableString):
+                            # child.replace_with(f'<loose>{child}</loose>') will escape the <> 
+                            # so we have to do this instead
+                            child.wrap(soup.new_tag('span'))
+
+                    
+                    # logger.info(f'Found child: {str(detail.children)}')
+                    # extract the img/span pairs
+                    # the html is like this:
+                    # text, img | text, img | text, img | text
+                    pairs = []
+                    skip = False
+                    for i, child in enumerate(detail.children):
+                        if skip:
+                            skip = False
+                            continue
+                        if isinstance(child, bs4.element.Tag):
+                            # check if its an img, if it is, get the next child, otherwise set the img inthe aay to none
+                            if child.name == 'img':
+                                img = child.attrs['src']
+                                text = detail.contents[i+1].text
+                                
+                                # for some reason it has weird escaped unicode
+                                text = ''.join([i if ord(i) < 128 else ' ' for i in text]).strip()
+
+                                pairs.append((text, img))
+                                skip = True
+                            else:
+                                pairs.append((child.text, None))
+
+                    
+
+                    # logger.info(f'Found pairs: {str(pairs)}')
+
+                    detail = ''
+                    for pair in pairs:
+                        if pair[1]:
+                            detail += f'{getQualityFromPath(pair[1])} {pair[0]} '
+                        else:
+                            detail += f'{pair[0]}'
+                    
+
+                    
                 else:
                     detail = detail.text
                     
@@ -94,7 +150,9 @@ def parse(url=None):
                     'inline': False
                 })
             except Exception as e:
-                # logger.error(f'Error failed to parse tr: {e}')
+                logger.error(f'Error failed to parse tr: {e} on line {e.__traceback__.tb_lineno}')
+                # throw the error
+                # raise e
                 pass
     else:
         body = soup.find_all('div', {'class': 'mw-parser-output'})[0]

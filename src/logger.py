@@ -33,7 +33,7 @@ class Logger:
 
         print(
             f'{self.time_color}{time.strftime(self.time_format)}{colorama.Fore.RESET} '
-            f'{type_color}{type.upper()}{colorama.Fore.RESET}     '
+            f'{type_color}{type.upper()}{colorama.Fore.RESET}{" " * ((5 - len(type)) + 4)}'
             f'{self.name_color}{self.name}{colorama.Fore.RESET} '
             f'{message}'
         )
