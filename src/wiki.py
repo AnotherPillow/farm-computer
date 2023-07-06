@@ -66,7 +66,7 @@ def parse(url=None):
                 if spans := detail.find_all('span', {'class': 'no-wrap'}):
                     detail = spans[0].text
                 elif spans := detail.find_all('span', {'style': 'display: none;'}):
-                    logger.info(f'Found span: {spans}')
+                    # logger.info(f'Found span: {spans}')
                     detail = detail.text.replace(spans[0].text, '')
 
                 elif spans := detail.find_all('span', {'class': 'nametemplate'}):
