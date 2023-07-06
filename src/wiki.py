@@ -121,12 +121,13 @@ def search(query, _logger=None):
         href = li.find_all('a')[0]['href']
         full_href = f'https://stardewvalleywiki.com{href}'
 
-        status = requests.get(full_href).status_code
+        r = requests.get(full_href)
+        status = r.status_code
 
         if status == 200:
             return parse(full_href)
-        elif status in [301, 302]:
-            redirected_link = requests.get(full_href).url
+        elif status in [301, 302, 304]:
+            redirected_link = r.url
             return parse(redirected_link)
 
     return parse(res.url)
