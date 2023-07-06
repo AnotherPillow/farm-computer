@@ -57,7 +57,9 @@ def parse(url=None):
     if infobox:
         infobox = infobox[0]
 
-        for tr in infobox.find_all('tr'):
+        trs = infobox.find_all('tr')
+
+        for tr in trs:
             # logger.info(f'Found tr: {tr}')
             try:
                 section = tr.find_all('td', {'id': 'infoboxsection'})[0].text

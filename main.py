@@ -25,7 +25,6 @@ async def ping(ctx):
 async def wiki(ctx, *args):
     await ctx.send(embed=_wiki.search(args, _logger=logger))
 
-
 @bot.event
 async def on_ready():
     logger.info(f'Bot is ready as {bot.user} ({bot.user.id})')
