@@ -34,9 +34,13 @@ def parse(url=None):
 
     logger.info(f'Parsing url: {url}')
 
-    if 'https://stardewvalleywiki.com/Special:Search' in url or not url:
-        
+    if 'https://stardewvalleywiki.com/Special:Search' in url \
+        or 'https://stardewvalleywiki.com/mediawiki/index.php?search=' in url \
+            or not url:
+
         return help()
+
+        
 
 
     html = requests.get(url).text
