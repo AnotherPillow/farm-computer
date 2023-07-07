@@ -13,5 +13,12 @@ HEALTH_EMOJI = CONFIG['emojis']['health']
 ENERGY_EMOJI = CONFIG['emojis']['energy']
 COIN_EMOJI = CONFIG['emojis']['coin']
 
+IRIDIUM_ENERGY_EMOJI = CONFIG['emojis']['iridium_energy']
+GOLD_ENERGY_EMOJI = CONFIG['emojis']['gold_energy']
+SILVER_ENERGY_EMOJI = CONFIG['emojis']['silver_energy']
+IRIDIUM_HEALTH_EMOJI = CONFIG['emojis']['iridium_health']
+GOLD_HEALTH_EMOJI = CONFIG['emojis']['gold_health']
+SILVER_HEALTH_EMOJI = CONFIG['emojis']['silver_health']
+
 MAIN_SERVER = CONFIG['main_server_id']
 CMD_CHANS = CONFIG['cmd_chans']

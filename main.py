@@ -36,10 +36,12 @@ async def wiki(interaction: discord.Interaction, query: str):
     # logger.info(f'wiki command called with query: {query}')
     logger.info(f'wiki command called in channel: {str(interaction.channel.id)}')
     logger.info(f'CMD_CHANS: {CMD_CHANS}')
-    await interaction.response.defer()
+    logger.info(f'ephemeral: {str(interaction.channel.id) not in CMD_CHANS}')
+    await interaction.response.defer(
+        ephemeral=str(interaction.channel.id) not in CMD_CHANS
+    )
     await interaction.followup.send(
         embed=_wiki.search(query, _logger=logger),
-        ephemeral=str(interaction.channel.id) not in CMD_CHANS
     )
 
 

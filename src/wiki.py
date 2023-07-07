@@ -83,7 +83,7 @@ def parse(url=None):
 
             if section:
                 section = section[0].text
-                logger.info(f'Found section: {section}')
+                # logger.info(f'Found section: {section}')
             
             if detail:
                 detail = detail[0]
@@ -113,19 +113,19 @@ def parse(url=None):
                                 foreimages=td.find_all('div', {'class': 'foreimage'})
                             )
                             
-                            logger.info(f'Emoji: {emoji}')
+                            # logger.info(f'Emoji: {emoji}')
                             text += f'{emoji} '
                         inner = td.text.strip()
                         if not inner:
                             continue
                         elif td.has_attr('style') and 'vertical-align: bottom;' in td['style']:
-                            logger.info(f'Found td with style: {td["style"]}')
+                            # logger.info(f'Found td with style: {td["style"]}')
                             text += f'{inner} '
                         elif not td.children or not td.attrs:
-                            logger.info(f'Found td with no children/attrs')
+                            # logger.info(f'Found td with no children/attrs')
                             do_newline = False
                             text += f'{inner} '
-                        logger.info(f'Found inner: *{inner}*')
+                        # logger.info(f'Found inner: *{inner}*')
 
                         # check if the next td has no attrs and no children
                         if i + 1 < len(row.find_all('td')):
@@ -138,7 +138,7 @@ def parse(url=None):
 
 
 
-                    logger.info(f'Found row: {row}')
+                    # logger.info(f'Found row: {row}')
                     
                     if do_newline:
                         text += '\n'    
