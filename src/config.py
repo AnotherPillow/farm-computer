@@ -22,3 +22,5 @@ SILVER_HEALTH_EMOJI = CONFIG['emojis']['silver_health']
 
 MAIN_SERVER = CONFIG['main_server_id']
 CMD_CHANS = CONFIG['cmd_chans']
+
+ALLOW_TEXT_COMMANDS = CONFIG['allow_text_commands']

@@ -6,6 +6,7 @@ from src.config import (
     BOT_PREFIX,
     MAIN_SERVER,
     CMD_CHANS,
+    ALLOW_TEXT_COMMANDS,
 )
 
 from src.logger import Logger
@@ -19,13 +20,14 @@ bot = commands.Bot(command_prefix=BOT_PREFIX, intents=intents)
 
 logger = Logger('FarmComputer')
 
-@bot.command()
-async def ping(ctx):
-    await ctx.send('pong!')
+if ALLOW_TEXT_COMMANDS:
+    @bot.command()
+    async def ping(ctx):
+        await ctx.send('pong!')
 
-@bot.command()
-async def wiki(ctx, *args):
-    await ctx.send(embed=_wiki.search(args, _logger=logger))
+    @bot.command()
+    async def wiki(ctx, *args):
+        await ctx.send(embed=_wiki.search(args, _logger=logger))
 
 @bot.tree.command(
     name = "wiki",
