@@ -4,10 +4,27 @@ from src.embed import EmbedBuiler
 from src.config import (
     BOT_PREFIX
 )
-from src.emotes import getQualityFromPath
+from src.emotes import getQualityFromPath, identify
 
 
 logger = None
+
+def help() -> EmbedBuiler:
+    embed = EmbedBuiler(
+        fields=[],
+        color=discord.Color.orange()
+    )
+
+    embed.title = 'Search Stardew Valley Wiki'
+    embed.description = 'Search the Stardew Valley Wiki for a specific page'
+    
+    embed.fields.append({
+        'name': 'Usage',
+        'value': f'`{BOT_PREFIX}wiki <search term>`',
+        'inline': False
+    })
+
+    return embed.build()
 
 def parse(url=None):
     embed = EmbedBuiler(
@@ -17,15 +34,9 @@ def parse(url=None):
 
     logger.info(f'Parsing url: {url}')
 
-    if url == 'https://stardewvalleywiki.com/Special:Search' or not url:
-        embed.title = 'Search Stardew Valley Wiki'
-        embed.description = 'Search the Stardew Valley Wiki for a specific page'
-        embed.fields.append({
-            'name': 'Usage',
-            'value': f'`{BOT_PREFIX}wiki <search term>`',
-            'inline': False
-        })
-        return embed.build()
+    if 'https://stardewvalleywiki.com/Special:Search' in url or not url:
+        
+        return help()
 
 
     html = requests.get(url).text
@@ -45,7 +56,8 @@ def parse(url=None):
     except:
         embed.image = main_logo_url
     
-    embed.title = soup.find_all('h1', {'id': 'firstHeading'})[0].text + ' - Stardew Valley Wiki'
+    pagename = soup.find_all('h1', {'id': 'firstHeading'})[0].text
+    embed.title =  pagename + ' - Stardew Valley Wiki'
     embed.url = url
 
     
@@ -63,109 +75,176 @@ def parse(url=None):
 
         for tr in trs:
             # logger.info(f'Found tr: {tr}')
-            try:
-                if tr.find_all('table', {'style': 'width:101%;'}) or tr.find_all('div', {'class': 'parent'}):
-                    break
-                section = tr.find_all('td', {'id': 'infoboxsection'})[0].text
-                detail = tr.find_all('td', {'id': 'infoboxdetail'})[0]
+            # try:
+            if tr.find_all('table', {'style': 'width:101%;'}): # or tr.find_all('div', {'class': 'parent'}):
+                break
+            section = tr.find_all('td', {'id': 'infoboxsection'})
+            detail = tr.find_all('td', {'id': 'infoboxdetail'})
 
-                if spans := detail.find_all('span', {'class': 'no-wrap'}):
-                    detail = spans[0].text
-                elif spans := detail.find_all('span', {'style': 'display: none;'}):
-                    # logger.info(f'Found span: {spans}')
-                    detail = detail.text.replace(spans[0].text, '')
+            if section:
+                section = section[0].text
+                logger.info(f'Found section: {section}')
+            
+            if detail:
+                detail = detail[0]
+            
+            if not section or not detail:
+                continue
+            
+            if (table := detail.find_all('table')) and section.strip() != 'Sell Price':
+                table = table[0]
+                rows = table.find_all('tr')
 
-                elif spans := detail.find_all('span', {'class': 'nametemplate'}):
-                    items = []
-                    for span in spans:
-                        items.append(span.text)
-                    detail = ', '.join(items)
-                
-                elif p_tags := detail.find_all('p', {
-                    'class': lambda x: x != 'mw-empty-elt'
-                }):
-                    items = []
-                    for p in p_tags:
-                        items.append(p.text)
+                first_row = rows[0]
 
-                    detail = ', '.join(items)
-                elif imgs := [
-                    x for x in detail.find_all('img')
-                    if x['alt'].endswith(' Quality.png')
-                ]:
-                    # getinnerhtml of the detail
+                text = ''
+                for row in rows:
+                    do_newline = True
+                    if row.find_all('tr'):
+                        continue
+                    for i, td in enumerate(row.find_all('td')):
+                        logger.info(f'Found td: {td}')
 
-                    # replace all LOOSE TEXT in the detail with a <loose> tag
-                    for child in detail.children:
-                        if isinstance(child, bs4.element.NavigableString):
-                            # child.replace_with(f'<loose>{child}</loose>') will escape the <> 
-                            # so we have to do this instead
-                            child.wrap(soup.new_tag('span'))
+                        if backimages := td.find_all('div', {'class': 'backimage'}):
 
-                    
-                    # logger.info(f'Found child: {str(detail.children)}')
-                    # extract the img/span pairs
-                    # the html is like this:
-                    # text, img | text, img | text, img | text
-                    pairs = []
-                    skip = False
-                    for i, child in enumerate(detail.children):
-                        if skip:
-                            skip = False
+                            # logger.info(f'Found backimage: {backimages}')
+                            emoji = identify(backimages[0].find_all('img')[0]['src'], 
+                                pagename,
+                                foreimages=td.find_all('div', {'class': 'foreimage'})
+                            )
+                            
+                            logger.info(f'Emoji: {emoji}')
+                            text += f'{emoji} '
+                        inner = td.text.strip()
+                        if not inner:
                             continue
-                        if isinstance(child, bs4.element.Tag):
-                            # check if its an img, if it is, get the next child, otherwise set the img inthe aay to none
-                            if child.name == 'img':
-                                img = child.attrs['src']
-                                text = detail.contents[i+1].text
-                                
-                                # for some reason it has weird escaped unicode
-                                text = ''.join([i if ord(i) < 128 else ' ' for i in text]).strip()
+                        elif td.has_attr('style') and 'vertical-align: bottom;' in td['style']:
+                            logger.info(f'Found td with style: {td["style"]}')
+                            text += f'{inner} '
+                        elif not td.children or not td.attrs:
+                            logger.info(f'Found td with no children/attrs')
+                            do_newline = False
+                            text += f'{inner} '
+                        logger.info(f'Found inner: *{inner}*')
 
-                                pairs.append((text, img))
-                                skip = True
-                            else:
-                                pairs.append((child.text, None))
+                        # check if the next td has no attrs and no children
+                        if i + 1 < len(row.find_all('td')):
+                            next_td = row.find_all('td')[i + 1]
+                            if not next_td.attrs and not next_td.children:
+                                do_newline = False
+                        elif row.parent != first_row.parent:
+                            do_newline = False
 
+
+
+
+                    logger.info(f'Found row: {row}')
                     
+                    if do_newline:
+                        text += '\n'    
+                            
 
-                    # logger.info(f'Found pairs: {str(pairs)}')
+                detail = text
 
-                    detail = ''
-                    for pair in pairs:
-                        if pair[1]:
-                            detail += f'{getQualityFromPath(pair[1])} {pair[0]} '
+            elif spans := detail.find_all('span', {'class': 'no-wrap'}):
+                detail = spans[0].text
+            elif spans := detail.find_all('span', { 'style': 'display: none;'}):
+                # logger.info(f'Found span: {spans}')
+                detail = detail.text.replace(spans[0].text, '')
+
+            elif spans := detail.find_all('span', {'class': 'nametemplate'}):
+                items = []
+                for span in spans:
+                    items.append(span.text)
+                detail = ', '.join(items)
+            
+            elif p_tags := detail.find_all('p', {
+                'class': lambda x: x != 'mw-empty-elt'
+            }):
+                items = []
+                for p in p_tags:
+                    items.append(p.text)
+
+                detail = ', '.join(items)
+            elif imgs := [
+                x for x in detail.find_all('img')
+                if x['alt'].endswith(' Quality.png')
+            ]:
+                # getinnerhtml of the detail
+
+                # replace all LOOSE TEXT in the detail with a <loose> tag
+                for child in detail.children:
+                    if isinstance(child, bs4.element.NavigableString):
+                        # child.replace_with(f'<loose>{child}</loose>') will escape the <> 
+                        # so we have to do this instead
+                        child.wrap(soup.new_tag('span'))
+
+                
+                # logger.info(f'Found child: {str(detail.children)}')
+                # extract the img/span pairs
+                # the html is like this:
+                # text, img | text, img | text, img | text
+                pairs = []
+                skip = False
+                for i, child in enumerate(detail.children):
+                    if skip:
+                        skip = False
+                        continue
+                    if isinstance(child, bs4.element.Tag):
+                        # check if its an img, if it is, get the next child, otherwise set the img inthe aay to none
+                        if child.name == 'img':
+                            img = child.attrs['src']
+                            text = detail.contents[i+1].text
+                            
+                            # for some reason it has weird escaped unicode
+                            text = ''.join([i if ord(i) < 128 else ' ' for i in text]).strip()
+
+                            pairs.append((text, img))
+                            skip = True
                         else:
-                            detail += f'{pair[0]}'
-                    
+                            pairs.append((child.text, None))
 
-                    
-                else:
-                    detail = detail.text
-                    
+                
 
-                embed.fields.append({
-                    'name': section,
-                    'value': detail,
-                    'inline': False
-                })
-            except Exception as e:
-                logger.error(f'Error failed to parse tr: {e} on line {e.__traceback__.tb_lineno}')
-                # throw the error
-                # raise e
-                pass
+                # logger.info(f'Found pairs: {str(pairs)}')
+
+                detail = ''
+                for pair in pairs:
+                    if pair[1]:
+                        detail += f'{getQualityFromPath(pair[1])} {pair[0]} '
+                    else:
+                        detail += f'{pair[0]}'
+                
+
+                
+            else:
+                detail = detail.text
+                
+
+            embed.fields.append({
+                'name': section,
+                'value': detail,
+                'inline': False
+            })
+            # except Exception as e:
+            #     logger.error(f'Error failed to parse tr: {e} on line {e.__traceback__.tb_lineno}')
+            #     # throw the error
+            #     # raise e
+            #     pass
     else:
         body = soup.find_all('div', {'class': 'mw-parser-output'})[0]
         #  get the first two <p> tags
         for p in body.find_all('p')[:2]:
             embed.description += p.text + '\n\n'
+    # logger.info(f'Got embed: {embed}')
     return embed.build()
 
 def search(query, _logger=None):
     global logger
     logger = _logger
 
-    query = " ".join(query)
+    if isinstance(query, list) or isinstance(query, tuple):
+        query = ' '.join(query)
     encoded = query.replace(" ", "+")
 
     url = f'https://stardewvalleywiki.com/mediawiki/index.php?search={encoded}'

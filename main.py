@@ -3,7 +3,9 @@ from discord.ext import commands
 
 from src.config import (
     BOT_TOKEN,
-    BOT_PREFIX
+    BOT_PREFIX,
+    MAIN_SERVER,
+    CMD_CHANS,
 )
 
 from src.logger import Logger
@@ -25,8 +27,25 @@ async def ping(ctx):
 async def wiki(ctx, *args):
     await ctx.send(embed=_wiki.search(args, _logger=logger))
 
+@bot.tree.command(
+    name = "wiki",
+    description = "Search the Stardew Valley Wiki for a specific page",
+    guild=discord.Object(id=MAIN_SERVER)
+)
+async def wiki(interaction: discord.Interaction, query: str):
+    # logger.info(f'wiki command called with query: {query}')
+    logger.info(f'wiki command called in channel: {str(interaction.channel.id)}')
+    logger.info(f'CMD_CHANS: {CMD_CHANS}')
+    await interaction.response.defer()
+    await interaction.followup.send(
+        embed=_wiki.search(query, _logger=logger),
+        ephemeral=str(interaction.channel.id) not in CMD_CHANS
+    )
+
+
 @bot.event
 async def on_ready():
+    await bot.tree.sync(guild=discord.Object(id=MAIN_SERVER))
     logger.info(f'Bot is ready as {bot.user} ({bot.user.id})')
     print()
 

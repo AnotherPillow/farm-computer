@@ -22,6 +22,10 @@ class EmbedBuiler:
         self.thumbnail = thumbnail
         self.image = image
 
+    def __str__(self) -> str:
+        # return self.build() as a dict
+        return str(self.build().to_dict())
+
     def build(self):
         embed = discord.Embed(
             title=self.title,
