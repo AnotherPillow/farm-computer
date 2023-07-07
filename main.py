@@ -33,10 +33,6 @@ async def wiki(ctx, *args):
     guild=discord.Object(id=MAIN_SERVER)
 )
 async def wiki(interaction: discord.Interaction, query: str):
-    # logger.info(f'wiki command called with query: {query}')
-    logger.info(f'wiki command called in channel: {str(interaction.channel.id)}')
-    logger.info(f'CMD_CHANS: {CMD_CHANS}')
-    logger.info(f'ephemeral: {str(interaction.channel.id) not in CMD_CHANS}')
     await interaction.response.defer(
         ephemeral=str(interaction.channel.id) not in CMD_CHANS
     )
