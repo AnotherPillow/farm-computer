@@ -107,7 +107,7 @@ def parse(url=None):
                     if row.find_all('tr'):
                         continue
                     for i, td in enumerate(row.find_all('td')):
-                        logger.info(f'Found td: {td}')
+                        # logger.info(f'Found td: {td}')
 
                         if backimages := td.find_all('div', {'class': 'backimage'}):
 
