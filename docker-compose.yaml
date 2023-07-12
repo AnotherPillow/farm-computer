@@ -1,0 +1,5 @@
+version: '3'
+services:
+    farm-computer:
+        image: AnotherPillow/farm-computer:latest
+        restart: unless-stopped
