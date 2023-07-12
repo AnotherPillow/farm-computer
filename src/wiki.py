@@ -1,4 +1,4 @@
-import bs4, requests, discord
+import bs4, requests, discord, re
 
 from src.embed import EmbedBuiler
 from src.config import (
@@ -25,6 +25,11 @@ def help() -> EmbedBuiler:
     })
 
     return embed.build()
+
+def cleanSellPrice(price: str) -> str:
+    regex = r'data-sort-value="[a-zA-Z0-9-_ ]+"'
+    return re.sub(regex, '', price)
+
 
 def parse(url=None):
     embed = EmbedBuiler(
@@ -239,7 +244,7 @@ def parse(url=None):
         body = soup.find_all('div', {'class': 'mw-parser-output'})[0]
         #  get the first two <p> tags
         for p in body.find_all('p')[:2]:
-            embed.description += p.text + '\n\n'
+            embed.description += cleanSellPrice(p.text) + '\n\n'
     # logger.info(f'Got embed: {embed}')
     return embed.build()
 

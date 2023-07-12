@@ -32,7 +32,7 @@ if ALLOW_TEXT_COMMANDS:
 @bot.tree.command(
     name = "wiki",
     description = "Search the Stardew Valley Wiki for a specific page",
-    guild=discord.Object(id=MAIN_SERVER)
+    guild=MAIN_SERVER
 )
 async def wiki(interaction: discord.Interaction, query: str):
     await interaction.response.defer(
@@ -45,7 +45,7 @@ async def wiki(interaction: discord.Interaction, query: str):
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync(guild=discord.Object(id=MAIN_SERVER))
+    await bot.tree.sync(guild=MAIN_SERVER)
     logger.info(f'Bot is ready as {bot.user} ({bot.user.id})')
     print()
 
