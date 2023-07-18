@@ -48,8 +48,8 @@ def qualityHealthEnergy(back_path, foreimages):
 
     fore_path = imgs[0]['src']
 
-    print(f'fore_path: {fore_path}')
-    print(f'back_path: {back_path}')
+    # print(f'fore_path: {fore_path}')
+    # print(f'back_path: {back_path}')
 
     if fore_path.endswith('Silver_Quality_Icon.png'):
         if back_path.endswith('Health.png'):

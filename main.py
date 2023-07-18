@@ -10,6 +10,7 @@ from src.config import (
 )
 
 from src.logger import Logger
+from src.cache import Cache
 import src.wiki as _wiki
 from src.embed import EmbedBuiler
 
@@ -19,6 +20,8 @@ intents.message_content = True
 bot = commands.Bot(command_prefix=BOT_PREFIX, intents=intents)
 
 logger = Logger('FarmComputer')
+cache = Cache()
+
 
 if ALLOW_TEXT_COMMANDS:
     @bot.command()
@@ -39,7 +42,7 @@ async def wiki(interaction: discord.Interaction, query: str):
         ephemeral=str(interaction.channel.id) not in CMD_CHANS
     )
     await interaction.followup.send(
-        embed=_wiki.search(query, _logger=logger),
+        embed=_wiki.search(query, _logger=logger, cache=cache)
     )
 
 

@@ -1,4 +1,4 @@
-import bs4, requests, discord, re
+import bs4, requests, discord, re, time
 
 from src.embed import EmbedBuiler
 from src.config import (
@@ -31,7 +31,7 @@ def cleanSellPrice(price: str) -> str:
     return re.sub(regex, '', price)
 
 
-def parse(url=None):
+def parse(url=None, build=True) -> EmbedBuiler or discord.Embed:
     embed = EmbedBuiler(
         fields=[],
         color=discord.Color.orange()
@@ -246,11 +246,14 @@ def parse(url=None):
         for p in body.find_all('p')[:2]:
             embed.description += cleanSellPrice(p.text) + '\n\n'
     # logger.info(f'Got embed: {embed}')
-    return embed.build()
+    # return embed.build()
+    return embed.build() if build else embed
 
-def search(query, _logger=None):
+def search(query, _logger=None, cache=None):
     global logger
     logger = _logger
+
+    startTime = time.time()
 
     if isinstance(query, list) or isinstance(query, tuple):
         query = ' '.join(query)
@@ -273,7 +276,8 @@ def search(query, _logger=None):
             pass
 
     if redir:
-        return parse(redir)
+        #return parse(redir)
+        return cache.get(redir)
 
     for li in soup.find_all('li', {'class': 'mw-search-result'}):
         href = li.find_all('a')[0]['href']
@@ -283,11 +287,16 @@ def search(query, _logger=None):
         status = r.status_code
 
         if status == 200:
-            return parse(full_href)
+            #return parse(full_href)
+            return cache.get(full_href)
         elif status in [301, 302, 304]:
             redirected_link = r.url
-            return parse(redirected_link)
+            #return parse(redirected_link)
+            return cache.get(redirected_link)
 
-    return parse(res.url)
+    # return parse(res.url)
+    resp = cache.get(res.url)
+    logger.info(f'Got response for {query} in {time.time() - startTime} seconds')
+    return resp
 
 
