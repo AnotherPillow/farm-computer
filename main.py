@@ -20,7 +20,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix=BOT_PREFIX, intents=intents)
 
 logger = Logger('FarmComputer')
-cache = Cache()
+cache = Cache(logger)
 
 
 if ALLOW_TEXT_COMMANDS:

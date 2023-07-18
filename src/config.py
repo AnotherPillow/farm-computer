@@ -25,3 +25,4 @@ if MAIN_SERVER: MAIN_SERVER = discord.Object(id=MAIN_SERVER)
 CMD_CHANS = CONFIG['cmd_chans']
 
 ALLOW_TEXT_COMMANDS = CONFIG['allow_text_commands']
+CLEAR_CACHE_HOURS = CONFIG['clear_cache_after_hours']
