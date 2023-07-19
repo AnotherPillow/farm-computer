@@ -24,7 +24,7 @@ def help() -> EmbedBuiler:
         'inline': False
     })
 
-    return embed.build()
+    return embed
 
 def cleanSellPrice(price: str) -> str:
     regex = r'data-sort-value="[a-zA-Z0-9-_ ]+"'
@@ -43,7 +43,7 @@ def parse(url=None, build=True) -> EmbedBuiler or discord.Embed:
         or 'https://stardewvalleywiki.com/mediawiki/index.php?search=' in url \
             or not url:
 
-        return help()
+        return help().build() if build else help()
 
         
 
