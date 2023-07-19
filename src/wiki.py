@@ -2,7 +2,7 @@ import bs4, requests, discord, re, time
 
 from src.embed import EmbedBuiler
 from src.config import (
-    BOT_PREFIX
+    HELP_PREFIX
 )
 from src.emotes import getQualityFromPath, identify
 
@@ -20,7 +20,7 @@ def help() -> EmbedBuiler:
     
     embed.fields.append({
         'name': 'Usage',
-        'value': f'`{BOT_PREFIX}wiki <search term>`',
+        'value': f'`{HELP_PREFIX}wiki <search term>`',
         'inline': False
     })
 
@@ -295,6 +295,9 @@ def search(query, _logger=None, cache=None):
             return cache.get(redirected_link)
 
     # return parse(res.url)
+    if soup.find('p', {'class': 'mw-search-createlink'}):
+        return help().build()
+        
     resp = cache.get(res.url)
     logger.info(f'Got response for {query} in {time.time() - startTime} seconds')
     return resp
