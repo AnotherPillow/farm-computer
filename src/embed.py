@@ -1,6 +1,6 @@
 import discord
 
-class EmbedBuiler:
+class EmbedBuilder:
 
     def __init__(
         self,

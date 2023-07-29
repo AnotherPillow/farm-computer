@@ -12,7 +12,7 @@ from src.config import (
 from src.logger import Logger
 from src.cache import Cache
 import src.wiki as _wiki
-from src.embed import EmbedBuiler
+from src.embed import EmbedBuilder
 
 intents = discord.Intents.default()
 intents.message_content = True
