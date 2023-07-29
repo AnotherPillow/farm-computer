@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from src.config import (
@@ -32,6 +33,10 @@ if ALLOW_TEXT_COMMANDS:
     async def wiki(ctx, *args):
         await ctx.send(embed=_wiki.search(args, _logger=logger))
 
+
+@app_commands.describe(
+        query="What you want to search the Stardew Valley Wiki for",
+)
 @bot.tree.command(
     name = "wiki",
     description = "Search the Stardew Valley Wiki for a specific page",
@@ -39,7 +44,7 @@ if ALLOW_TEXT_COMMANDS:
 )
 async def wiki(interaction: discord.Interaction, query: str):
     await interaction.response.defer(
-        ephemeral=str(interaction.channel.id) not in CMD_CHANS
+        ephemeral=(str(interaction.channel.id) not in CMD_CHANS) or (type(interaction.guild) != None) # interaction.guild will be None if its a DM channel
     )
     await interaction.followup.send(
         embed=_wiki.search(query, _logger=logger, cache=cache)
@@ -48,7 +53,7 @@ async def wiki(interaction: discord.Interaction, query: str):
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync(guild=MAIN_SERVER)
+    await bot.tree.sync(guild=MAIN_SERVER) # dont sync in on_ready
     logger.info(f'Bot is ready as {bot.user} ({bot.user.id})')
     print()
 
