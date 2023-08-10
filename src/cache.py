@@ -1,5 +1,5 @@
 from .wiki import parse
-from .logger import Logger
+from .MultiLangLogger.python import Logger
 from datetime import datetime
 
 from .config import (

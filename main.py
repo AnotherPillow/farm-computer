@@ -9,7 +9,7 @@ from src.config import (
     ALLOW_TEXT_COMMANDS,
 )
 
-from src.logger import Logger
+from src.MultiLangLogger.python import Logger
 from src.cache import Cache
 import src.wiki as _wiki
 from src.embed import EmbedBuilder
