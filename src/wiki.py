@@ -12,7 +12,8 @@ logger = None
 def help() -> EmbedBuilder:
     embed = EmbedBuilder(
         fields=[],
-        color=discord.Color.orange()
+        color=discord.Color.orange(),
+        str_color='E67E22'
     )
 
     embed.title = 'Search Stardew Valley Wiki'
@@ -34,7 +35,8 @@ def cleanSellPrice(price: str) -> str:
 def parse(url=None, build=True) -> EmbedBuilder or discord.Embed:
     embed = EmbedBuilder(
         fields=[],
-        color=discord.Color.orange()
+        color=discord.Color.orange(),
+        str_color='E67E22'
     )
 
     logger.info(f'Parsing url: {url}')

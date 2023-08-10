@@ -33,3 +33,4 @@ CMD_CHANS = CONFIG['cmd_chans']
 
 ALLOW_TEXT_COMMANDS = CONFIG['allow_text_commands']
 CLEAR_CACHE_HOURS = CONFIG['clear_cache_after_hours']
+CACHE_FILE = CONFIG['cache_file'] # recommended to use private/cache.json
