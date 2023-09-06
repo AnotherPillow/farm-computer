@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from src.config import (
@@ -32,6 +33,9 @@ if ALLOW_TEXT_COMMANDS:
     async def wiki(ctx, *args):
         await ctx.send(embed=_wiki.search(args, _logger=logger))
 
+@app_commands.describe(
+    query="What to search the wiki for"
+)
 @bot.tree.command(
     name = "wiki",
     description = "Search the Stardew Valley Wiki for a specific page",
