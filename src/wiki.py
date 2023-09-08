@@ -1,26 +1,47 @@
-import bs4, requests, discord, re, time
+import bs4, requests, discord, re, time, aiohttp
+#from .cache import Cache
+from .embed import *
+from .emotes import getQualityFromPath, identify
+import datetime
+import logging
+import asyncio
+import urllib.parse
 
-from src.embed import EmbedBuilder
-from src.config import (
-    HELP_PREFIX
-)
-from src.emotes import getQualityFromPath, identify
+logger: logging.Logger = None
+request_logger: logging.Logger = None
+sessions: list[aiohttp.ClientSession] = None
 
 
-logger = None
+async def _get(url) -> aiohttp.ClientResponse:
+    global sessions
+    if request_logger is None:
+        global logger
+        logger.warning('Request logger is None')
+    if sessions is None: 
+        logger.warning('Sessions is None')
+    for session, tr in zip(sessions, range(1,len(sessions))):
+        try:
+            r = await session.get(url)
+            if request_logger is not None: request_logger.info(f'{r.status} from {url} (session {tr})')
+            if r.status != 200:
+                if r.status == 429:
+                    await asyncio.sleep(3)
+                    continue
+            return r
+        except:
+            continue
 
-def help() -> EmbedBuilder:
+def help() -> discord.Embed:
     embed = EmbedBuilder(
         fields=[],
         color=discord.Color.orange()
     )
-
     embed.title = 'Search Stardew Valley Wiki'
     embed.description = 'Search the Stardew Valley Wiki for a specific page'
-    
+
     embed.fields.append({
         'name': 'Usage',
-        'value': f'`{HELP_PREFIX}wiki <search term>`',
+        'value': f'`/wiki <search term>` or `@Farm Computer wiki <search term>`',
         'inline': False
     })
 
@@ -31,7 +52,7 @@ def cleanSellPrice(price: str) -> str:
     return re.sub(regex, '', price)
 
 
-def parse(url=None, build=True) -> EmbedBuilder or discord.Embed:
+async def parse(url=None, build=True) -> discord.Embed:
     embed = EmbedBuilder(
         fields=[],
         color=discord.Color.orange()
@@ -48,7 +69,7 @@ def parse(url=None, build=True) -> EmbedBuilder or discord.Embed:
         
 
 
-    html = requests.get(url).text
+    html = await (await _get(url)).text()
     soup = bs4.BeautifulSoup(html, 'html.parser')
 
     # find the first <img> that does NOT have a srcset attr
@@ -249,56 +270,71 @@ def parse(url=None, build=True) -> EmbedBuilder or discord.Embed:
     # return embed.build()
     return embed.build() if build else embed
 
-def search(query, _logger=None, cache=None):
+async def search(query: str, _logger: logging.Logger=None, cache=None) -> discord.Embed:
     global logger
-    logger = _logger
+    if logger is None: logger = _logger
 
-    startTime = time.time()
+    startTime = datetime.datetime.now().timestamp()
 
     if isinstance(query, list) or isinstance(query, tuple):
-        query = ' '.join(query)
-    encoded = query.replace(" ", "+")
+        query = '+'.join(query)
 
-    url = f'https://stardewvalleywiki.com/mediawiki/index.php?search={encoded}'
-    
-    res = requests.get(url)
+    r = None
+    status = None
+    full_href = None
 
-    soup = bs4.BeautifulSoup(res.text, 'html.parser')
+    try:
+        url = f"https://stardewvalleywiki.com/{query}"
+        r = await _get(url)
+        if r.status > 350:
+            #print(r.status)
+            raise Exception()
+        status = r.status
+        full_href = r._real_url.__str__()
+        soup = bs4.BeautifulSoup(await r.text(), 'html.parser')
+    except Exception:
+        #print(r.status)
+        url = f'https://stardewvalleywiki.com/mediawiki/index.php?search={encoded}'
 
-    # logger.info(f'Got status code: {res.status_code}')
-    # logger.info(f'Got url: {res.url}')
+        res = await _get(url)
 
-    redir = False
-    if res.status_code in [301, 302, 304]:
-        try:
-            redir = soup.find_all('meta', {'property': 'og:url'})[0]['content']
-        except:
-            pass
+        soup = bs4.BeautifulSoup(await res.text(), 'html.parser')
 
-    if redir:
-        #return parse(redir)
-        return cache.get(redir)
+        # logger.info(f'Got status code: {res.status_code}')
+        # logger.info(f'Got url: {res.url}')
 
-    for li in soup.find_all('li', {'class': 'mw-search-result'}):
-        href = li.find_all('a')[0]['href']
-        full_href = f'https://stardewvalleywiki.com{href}'
+        redir = False
+        if res.status in [301, 302, 304]:
+            try:
+                redir = soup.find_all('meta', {'property': 'og:url'})[0]['content']
+            except:
+                pass
 
-        r = requests.get(full_href)
-        status = r.status_code
+        if redir:
+            #return parse(redir)
+            return await cache.get(redir)
 
-        if status == 200:
-            #return parse(full_href)
-            return cache.get(full_href)
-        elif status in [301, 302, 304]:
-            redirected_link = r.url
-            #return parse(redirected_link)
-            return cache.get(redirected_link)
+        for li in soup.find_all('li', {'class': 'mw-search-result'}):
+            href = li.find_all('a')[0]['href']
+            full_href = f'https://stardewvalleywiki.com{href}'
+
+        if full_href != url and full_href != urllib.parse.urlparse(url).path:
+            r = await _get(full_href)
+            status = r.status
+
+    if status == 200:
+        #return parse(full_href)
+        return await cache.get(full_href)
+    elif status in [301, 302, 304]:
+        redirected_link = r.url
+        #return parse(redirected_link)
+        return await cache.get(redirected_link)
 
     # return parse(res.url)
     if soup.find('p', {'class': 'mw-search-createlink'}):
         return help().build()
-        
-    resp = cache.get(res.url)
+    resp = await cache.get(str(res.url))
+    
     logger.info(f'Got response for {query} in {time.time() - startTime} seconds')
     return resp
 
