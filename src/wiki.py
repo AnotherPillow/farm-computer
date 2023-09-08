@@ -1,6 +1,6 @@
 import bs4, requests, discord, re, time
 
-from src.embed import EmbedBuiler
+from src.embed import EmbedBuilder
 from src.config import (
     HELP_PREFIX
 )
@@ -9,8 +9,8 @@ from src.emotes import getQualityFromPath, identify
 
 logger = None
 
-def help() -> EmbedBuiler:
-    embed = EmbedBuiler(
+def help() -> EmbedBuilder:
+    embed = EmbedBuilder(
         fields=[],
         color=discord.Color.orange()
     )
@@ -31,8 +31,8 @@ def cleanSellPrice(price: str) -> str:
     return re.sub(regex, '', price)
 
 
-def parse(url=None, build=True) -> EmbedBuiler or discord.Embed:
-    embed = EmbedBuiler(
+def parse(url=None, build=True) -> EmbedBuilder or discord.Embed:
+    embed = EmbedBuilder(
         fields=[],
         color=discord.Color.orange()
     )
