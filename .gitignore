@@ -1,2 +1,5 @@
 private/
 __pycache__/
+
+# yes this is a real file, maru was broken
+maru.html 

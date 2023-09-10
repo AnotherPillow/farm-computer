@@ -65,8 +65,12 @@ def parse(url=None, build=True) -> EmbedBuilder or discord.Embed:
     except:
         embed.image = main_logo_url
     
-    pagename = soup.find_all('h1', {'id': 'firstHeading'})[0].text
-    embed.title =  pagename + ' - Stardew Valley Wiki'
+    try:
+        pagename = soup.find({'id': 'firstHeading'}).text
+        embed.title =  pagename + ' - Stardew Valley Wiki'
+    except:
+        pagename = soup.find('title').text
+        embed.title = pagename
     embed.url = url
 
     
