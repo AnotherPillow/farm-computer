@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+import re, requests
 
 from src.config import (
     BOT_TOKEN,
@@ -8,6 +9,7 @@ from src.config import (
     MAIN_SERVER,
     CMD_CHANS,
     ALLOW_TEXT_COMMANDS,
+    WIKITEXT_LINKING,
 )
 
 from src.MultiLangLogger.python import Logger
@@ -23,6 +25,8 @@ bot = commands.Bot(command_prefix=BOT_PREFIX, intents=intents)
 logger = Logger('FarmComputer')
 cache = Cache(logger)
 
+link_regex = r'\[\[(.+)\]\]'
+bad_link_regex = r'\[\[.+\]\]\(.+\)'
 
 if ALLOW_TEXT_COMMANDS:
     @bot.command()
@@ -49,6 +53,23 @@ async def wiki(interaction: discord.Interaction, query: str):
         embed=_wiki.search(query, _logger=logger, cache=cache)
     )
 
+if WIKITEXT_LINKING:
+    @bot.event
+    async def on_message(message):
+        if message.author == bot.user:
+            return
+        
+        content = str(message.content)
+        
+        links = re.findall(link_regex, content)
+        if links and not re.findall(bad_link_regex, content):
+            for link in links:
+                r = requests.get(f'https://stardewvalleywiki.com/{link}')
+
+                if r.status_code in [301, 302, 304, 400, 404]:
+                    return
+                else:
+                    await message.reply(f'<https://stardewvalleywiki.com/{link}>', mention_author=False)
 
 @bot.event
 async def on_ready():
