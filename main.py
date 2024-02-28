@@ -55,20 +55,20 @@ async def wiki(interaction: discord.Interaction, query: str):
         embed=_wiki.search(query, _logger=logger, cache=cache)
     )
 
-if WIKITEXT_LINKING:
-    @bot.event
-    async def on_message(message):
-        if message.author == bot.user:
-            return
-        
-        if OLD_WIKI_REDIRECT:
-            for community_wiki_link in re.findall(r"https://stardewcommunitywiki\.com/[a-zA-Z0-9_/:\-%]*", message.content):
-                link_path = urllib.parse.urlparse(community_wiki_link).path
-                new_url = urllib.parse.urljoin('https://stardewvalleywiki.com', link_path)
-                await message.channel.send(f"I notice you're linking to the old wiki, that wiki has been in a read-only state for several months. Here are the links to that page on the new wiki: {new_url}")
-        
-        content = str(message.content)
-        
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+    
+    content = str(message.content)
+    
+    if OLD_WIKI_REDIRECT:
+        for community_wiki_link in re.findall(r"https://stardewcommunitywiki\.com/[a-zA-Z0-9_/:\-%]*", content):
+            link_path = urllib.parse.urlparse(community_wiki_link).path
+            new_url = urllib.parse.urljoin('https://stardewvalleywiki.com', link_path)
+            await message.channel.send(f"I notice you're linking to the old wiki, that wiki has been in a read-only state for several months. Here are the links to that page on the new wiki: {new_url}")
+    
+    if WIKITEXT_LINKING:
         links = re.findall(link_regex, content)
         if links and not re.findall(bad_link_regex, content):
             for link in links:
