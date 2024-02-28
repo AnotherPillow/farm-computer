@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import re, requests
+import urllib.parse
 
 from src.config import (
     BOT_TOKEN,
@@ -10,6 +11,7 @@ from src.config import (
     CMD_CHANS,
     ALLOW_TEXT_COMMANDS,
     WIKITEXT_LINKING,
+    OLD_WIKI_REDIRECT,
 )
 
 from src.MultiLangLogger.python import Logger
@@ -58,6 +60,12 @@ if WIKITEXT_LINKING:
     async def on_message(message):
         if message.author == bot.user:
             return
+        
+        if OLD_WIKI_REDIRECT:
+            for community_wiki_link in re.findall(r"https://stardewcommunitywiki\.com/[a-zA-Z0-9_/:\-%]*", message.content):
+                link_path = urllib.parse.urlparse(community_wiki_link).path
+                new_url = urllib.parse.urljoin('https://stardewvalleywiki.com', link_path)
+                await message.channel.send(f"I notice you're linking to the old wiki, that wiki has been in a read-only state for several months. Here are the links to that page on the new wiki: {new_url}")
         
         content = str(message.content)
         
