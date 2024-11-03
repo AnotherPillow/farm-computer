@@ -77,7 +77,8 @@ async def on_message(message):
                 if r.status_code in [301, 302, 304, 400, 404]:
                     return
                 else:
-                    await message.reply(f'<https://stardewvalleywiki.com/{link}>', mention_author=False)
+                    url = re.search(r'<meta\s+property="og:url"\s+content="([^"]+)"', r.text)
+                    await message.reply(f'<{url.group(1)}>', mention_author=False)
 
 @bot.event
 async def on_ready():

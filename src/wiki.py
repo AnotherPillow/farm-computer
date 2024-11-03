@@ -31,7 +31,7 @@ def cleanSellPrice(price: str) -> str:
     return re.sub(regex, '', price)
 
 
-def parse(url=None, build=True) -> EmbedBuilder or discord.Embed:
+def parse(url=None, build=True) -> EmbedBuilder | discord.Embed:
     embed = EmbedBuilder(
         fields=[],
         color=discord.Color.orange()
