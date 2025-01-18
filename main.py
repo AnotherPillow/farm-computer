@@ -72,13 +72,19 @@ async def on_message(message):
         links = re.findall(link_regex, content)
         if links and not re.findall(bad_link_regex, content):
             for link in links:
-                r = requests.get(f'https://stardewvalleywiki.com/{link}')
+                fullLink = f'https://stardewvalleywiki.com/{link}'
+                parsed = urllib.parse.urlparse(fullLink)
+                r = requests.get(fullLink)
 
                 if r.status_code in [301, 302, 304, 400, 404]:
                     return
                 else:
                     url = re.search(r'<meta\s+property="og:url"\s+content="([^"]+)"', r.text)
-                    await message.reply(f'<{url.group(1)}>', mention_author=False)
+                    validUrl = url.group(1)
+                    if parsed.fragment != '':
+                        validUrl += f'#{parsed.fragment}'
+                    await message.reply(f'<{validUrl}>', mention_author=False)
+
 
 @bot.event
 async def on_ready():
