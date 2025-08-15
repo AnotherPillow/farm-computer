@@ -45,12 +45,9 @@ def parse(url=None, build=True) -> EmbedBuilder | discord.Embed:
 
         return help().build() if build else help()
 
-        
-
-
     html = requests.get(url, headers={
-            'User-Agent': 'FarmComputerBot'
-        }).text
+        'User-Agent': 'FarmComputerBot'
+    }).text
     soup = bs4.BeautifulSoup(html, 'html.parser')
 
     # find the first <img> that does NOT have a srcset attr
@@ -267,7 +264,9 @@ def search(query, _logger=None, cache=None):
 
     url = f'https://stardewvalleywiki.com/mediawiki/index.php?search={encoded}'
     
-    res = requests.get(url)
+    res = requests.get(url, headers={
+        'User-Agent': 'FarmComputerBot'
+    })
 
     soup = bs4.BeautifulSoup(res.text, 'html.parser')
 
