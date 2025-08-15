@@ -74,7 +74,9 @@ async def on_message(message):
             for link in links:
                 fullLink = f'https://stardewvalleywiki.com/{link}'
                 parsed = urllib.parse.urlparse(fullLink)
-                r = requests.get(fullLink)
+                r = requests.get(fullLink, headers={
+                    'User-Agent': 'FarmComputerBot'
+                })
 
                 if r.status_code in [301, 302, 304, 400, 404]:
                     return
