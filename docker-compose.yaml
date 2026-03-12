@@ -2,5 +2,8 @@ services:
     worker:
         build: .
         command: python main.py
+        container_name: farmcomputer
+        volumes:
+            - ./private:/farmcomputer/private
         environment:
             - PYTHONUNBUFFERED=1
