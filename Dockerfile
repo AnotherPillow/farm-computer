@@ -1,9 +1,13 @@
-FROM python:3.11-alpine
+FROM python:3.12-slim
 
-RUN apk update && apk add git
+WORKDIR /app
 
-ADD requirements.txt /farm-computer/requirements.txt
-RUN pip3 install -r /farm-computer/requirements.txt
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-WORKDIR /farm-computer
-CMD ["python3", "-u", "main.py"]
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "main.py"]
